@@ -25,13 +25,16 @@
         <ul id="player-list"></ul>
         <h2>Balance Summary</h2>
         <ul id="balance-summary"></ul>
+        <h2>Pay</h2>
+        <form id="add-transaction-form">
+            <select id="receiver" required>
+                <option value="" disabled selected>Select Receiver</option>
+            </select>
+            <input type="number" id="amount" placeholder="Amount" required>
+            <button type="submit">Pay</button>
+        </form>
         <h2>Transactions</h2>
         <ul id="transaction-list"></ul>
-        <form id="add-transaction-form">
-            <input type="text" id="receiver" placeholder="Receiver Name" required>
-            <input type="number" id="amount" placeholder="Amount" required>
-            <button type="submit">Add Transaction</button>
-        </form>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
