@@ -1,13 +1,23 @@
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Arial', sans-serif;
     margin: 0;
     padding: 0;
-    background: #f4f4f9;
+    background: linear-gradient(to right, #00c6ff, #0072ff);
     color: #333;
 }
 
-h1, h2 {
-    color: #444;
+.container {
+    max-width: 900px;
+    margin: 30px auto;
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2, h3 {
+    text-align: center;
+    color: #333;
 }
 
 .hidden {
@@ -15,24 +25,44 @@ h1, h2 {
 }
 
 button {
-    padding: 10px 15px;
-    background-color: #007bff;
-    color: #fff;
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background: #007bff;
+    color: white;
     border: none;
+    border-radius: 8px;
+    font-size: 16px;
     cursor: pointer;
-    border-radius: 5px;
+    margin-top: 10px;
 }
 
 button:hover {
-    background-color: #0056b3;
+    background: #0056b3;
 }
 
-input {
-    padding: 10px;
-    margin: 5px 0;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    width: calc(100% - 22px);
+input, select {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+
+th {
+    background-color: #f7f7f7;
 }
 
 ul {
@@ -41,14 +71,14 @@ ul {
 }
 
 ul li {
+    background: #f4f4f4;
+    margin: 8px 0;
     padding: 10px;
-    background: #fff;
-    margin: 5px 0;
-    border: 1px solid #ddd;
-    border-radius: 5px;
+    border-radius: 6px;
+    text-align: center;
+    cursor: pointer;
 }
 
-#rooms-list li {
-    cursor: pointer;
-    color: #007bff;
+ul li:hover {
+    background: #ddd;
 }
