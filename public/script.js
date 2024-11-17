@@ -4,11 +4,13 @@ const firebaseConfig = {
     authDomain: "group-payment-manager.firebaseapp.com",
     databaseURL: "https://group-payment-manager-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "group-payment-manager",
-    storageBucket: "group-payment-manager.firebasestorage.app",
+    storageBucket: "group-payment-manager.firebasedatabase.app",
     messagingSenderId: "829025220060",
     appId: "1:829025220060:web:49fc46e0970d5385efcb19",
     measurementId: "G-L7X9YMRE8Q"
 };
+
+// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
@@ -18,8 +20,7 @@ const roomSection = document.getElementById("room-section");
 const roomTitle = document.getElementById("room-title");
 const currentRoomId = document.getElementById("current-room-id");
 const playerList = document.getElementById("player-list");
-const receiverList = document.getElementById("receiver");
-const playerTable = document.querySelector("#player-table tbody");
+const summaryTable = document.querySelector("#summary-table tbody");
 
 let currentRoomID = null;
 let currentPlayerName = null;
@@ -39,10 +40,10 @@ roomForm.addEventListener("submit", (e) => {
     currentRoomID = roomId;
 
     // Add player to room
-    db.ref(`rooms/${roomId}/players/${playerName}`).set(true);
+    db.ref(`rooms/${roomId}/balances/${playerName}`).set(0);
 
     // Remove player on disconnect
-    db.ref(`rooms/${roomId}/players/${playerName}`).onDisconnect().remove();
+    db.ref(`rooms/${roomId}/balances/${playerName}`).onDisconnect().remove();
 
     // Update UI
     roomForm.classList.add("hidden");
@@ -55,40 +56,26 @@ roomForm.addEventListener("submit", (e) => {
 
 // Listen for room updates
 function listenToRoom(roomId) {
-    // Update player list
-    db.ref(`rooms/${roomId}/players`).on("value", (snapshot) => {
-        const players = snapshot.val();
+    // Update player list and summary
+    db.ref(`rooms/${roomId}/balances`).on("value", (snapshot) => {
+        const balances = snapshot.val();
         playerList.innerHTML = "";
-        receiverList.innerHTML = "";
+        summaryTable.innerHTML = "";
 
-        if (players) {
-            Object.keys(players).forEach((player) => {
+        if (balances) {
+            Object.keys(balances).forEach((player) => {
+                // Update player list
                 const li = document.createElement("li");
                 li.textContent = player;
                 playerList.appendChild(li);
 
-                const option = document.createElement("option");
-                option.value = player;
-                option.textContent = player;
-                receiverList.appendChild(option);
-            });
-        }
-    });
-
-    // Update payment history
-    db.ref(`rooms/${roomId}/payments`).on("value", (snapshot) => {
-        const payments = snapshot.val();
-        playerTable.innerHTML = "";
-        if (payments) {
-            Object.keys(payments).forEach((key) => {
-                const payment = payments[key];
+                // Update summary table
                 const row = document.createElement("tr");
                 row.innerHTML = `
-                    <td>${payment.payer}</td>
-                    <td>${payment.amount} ฿</td>
-                    <td>${payment.receiver}</td>
+                    <td>${player}</td>
+                    <td>${balances[player]} ฿</td>
                 `;
-                playerTable.appendChild(row);
+                summaryTable.appendChild(row);
             });
         }
     });
@@ -97,19 +84,21 @@ function listenToRoom(roomId) {
 // Add payment
 document.getElementById("add-payment-form").addEventListener("submit", (e) => {
     e.preventDefault();
-    const amount = document.getElementById("amount").value;
-    const receiver = receiverList.value;
+    const amount = parseFloat(document.getElementById("amount").value);
+    const receiver = document.getElementById("receiver").value;
 
     if (!amount || !receiver) {
         alert("Please fill all fields.");
         return;
     }
 
-    db.ref(`rooms/${currentRoomID}/payments`).push({
-        payer: currentPlayerName,
-        amount,
-        receiver,
-    });
+    // Update payer balance
+    const payerRef = db.ref(`rooms/${currentRoomID}/balances/${currentPlayerName}`);
+    payerRef.transaction((currentBalance) => (currentBalance || 0) - amount);
+
+    // Update receiver balance
+    const receiverRef = db.ref(`rooms/${currentRoomID}/balances/${receiver}`);
+    receiverRef.transaction((currentBalance) => (currentBalance || 0) + amount);
 
     document.getElementById("add-payment-form").reset();
 });

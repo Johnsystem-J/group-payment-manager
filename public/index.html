@@ -26,8 +26,6 @@
             <h2 id="room-title">Room ID: <span id="current-room-id"></span></h2>
             <h3>Players in Room:</h3>
             <ul id="player-list"></ul>
-            <h3>Receiver:</h3>
-            <select id="receiver-list"></select>
 
             <!-- Add Payment Form -->
             <form id="add-payment-form">
@@ -38,13 +36,13 @@
                 <button type="submit">Add Payment</button>
             </form>
 
-            <!-- Payment Table -->
-            <table id="player-table">
+            <!-- Payment Summary Table -->
+            <h3>Summary:</h3>
+            <table id="summary-table">
                 <thead>
                     <tr>
-                        <th>Payer</th>
-                        <th>Amount</th>
-                        <th>Receiver</th>
+                        <th>Player</th>
+                        <th>Balance (฿)</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -53,8 +51,8 @@
     </div>
 
     <!-- Firebase CDN -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>    
 
     <!-- Main JS -->
     <script src="script.js"></script>
