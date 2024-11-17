@@ -80,12 +80,3 @@ document.getElementById("add-payment-form").addEventListener("submit", (e) => {
     // Clear form
     document.getElementById("add-payment-form").reset();
 });
-
-// Generate QR Code
-document.getElementById("generate-qr").addEventListener("click", () => {
-    const promptpayNumber = document.getElementById("promptpay-number").value;
-    const amount = document.getElementById("amount").value;
-    const qrCodeUrl = `https://promptpay.io/${promptpayNumber}/${amount}`;
-    const qrCodeContainer = document.getElementById("qr-code-container");
-    qrCodeContainer.innerHTML = `<img src="${qrCodeUrl}" alt="PromptPay QR Code">`;
-});
