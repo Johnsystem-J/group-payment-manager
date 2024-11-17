@@ -4,11 +4,13 @@ const firebaseConfig = {
     authDomain: "group-payment-manager.firebaseapp.com",
     databaseURL: "https://group-payment-manager-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "group-payment-manager",
-    storageBucket: "group-payment-manager.firebasestorage.app",
+    storageBucket: "group-payment-manager.firebasedatabase.app",
     messagingSenderId: "829025220060",
     appId: "1:829025220060:web:49fc46e0970d5385efcb19",
     measurementId: "G-L7X9YMRE8Q"
 };
+
+// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
