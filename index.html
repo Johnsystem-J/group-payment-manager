@@ -10,30 +10,31 @@
     <div class="container">
         <h1>🎴 Real-Time Group Payment</h1>
 
-        <!-- Create/Join Room Section -->
+        <!-- Join Room Section -->
         <div id="form-section">
             <form id="room-form">
-                <label for="roomName">Room Name:</label>
-                <input type="text" id="roomName" placeholder="Enter room name" required>
-                <label for="roomId">Room ID (Optional):</label>
-                <input type="text" id="roomId" placeholder="Enter room ID">
+                <label for="playerName">Player Name:</label>
+                <input type="text" id="playerName" placeholder="Enter your name" required>
+                <label for="roomId">Room ID:</label>
+                <input type="text" id="roomId" placeholder="Enter Room ID" required>
                 <button type="submit">Create / Join Room</button>
             </form>
         </div>
 
         <!-- Room Details Section -->
         <div id="room-section" class="hidden">
-            <h2 id="room-title"></h2>
-            <p><strong>Room ID:</strong> <span id="current-room-id"></span></p>
+            <h2 id="room-title">Room ID: <span id="current-room-id"></span></h2>
+            <h3>Players in Room:</h3>
+            <ul id="player-list"></ul>
+            <h3>Receiver:</h3>
+            <select id="receiver-list"></select>
 
             <!-- Add Payment Form -->
             <form id="add-payment-form">
-                <label for="payer">Payer:</label>
-                <input type="text" id="payer" placeholder="Enter payer's name" required>
                 <label for="amount">Amount:</label>
                 <input type="number" id="amount" placeholder="Enter amount" required>
                 <label for="receiver">Receiver:</label>
-                <input type="text" id="receiver" placeholder="Enter receiver's name" required>
+                <select id="receiver" required></select>
                 <button type="submit">Add Payment</button>
             </form>
 
@@ -51,96 +52,11 @@
         </div>
     </div>
 
-    <!-- Firebase SDK (Modules) -->
-    <script type="module">
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-        import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+    <!-- Firebase CDN -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>    
 
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyD71BpGMZ0QbXdgvc73-L7SdVSWmacuohM",
-            authDomain: "group-payment-manager.firebaseapp.com",
-            databaseURL: "https://group-payment-manager-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "group-payment-manager",
-            storageBucket: "group-payment-manager.firebasestorage.app",
-            messagingSenderId: "829025220060",
-            appId: "1:829025220060:web:49fc46e0970d5385efcb19",
-            measurementId: "G-L7X9YMRE8Q"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-
-        // DOM Elements
-        const roomForm = document.getElementById("room-form");
-        const roomSection = document.getElementById("room-section");
-        const roomTitle = document.getElementById("room-title");
-        const currentRoomId = document.getElementById("current-room-id");
-        const playerTable = document.querySelector("#player-table tbody");
-
-        // Create or Join Room
-        roomForm.addEventListener("submit", (e) => {
-            e.preventDefault();
-            const roomName = document.getElementById("roomName").value;
-            const roomId = document.getElementById("roomId").value || Math.random().toString(36).substr(2, 6);
-
-            // Save room details to Firebase
-            set(ref(database, `rooms/${roomId}`), {
-                roomName: roomName,
-                createdAt: Date.now(),
-            });
-
-            // Update UI
-            roomForm.classList.add("hidden");
-            roomSection.classList.remove("hidden");
-            roomTitle.textContent = roomName;
-            currentRoomId.textContent = roomId;
-
-            // Listen for room updates
-            listenToRoom(roomId);
-        });
-
-        // Listen for payments in the room
-        function listenToRoom(roomId) {
-            const paymentsRef = ref(database, `rooms/${roomId}/payments`);
-            onValue(paymentsRef, (snapshot) => {
-                const payments = snapshot.val();
-                playerTable.innerHTML = ""; // Clear table
-                if (payments) {
-                    Object.keys(payments).forEach((key) => {
-                        const payment = payments[key];
-                        const row = document.createElement("tr");
-                        row.innerHTML = `
-                            <td>${payment.payer}</td>
-                            <td>${payment.amount} ฿</td>
-                            <td>${payment.receiver}</td>
-                        `;
-                        playerTable.appendChild(row);
-                    });
-                }
-            });
-        }
-
-        // Add payment to Firebase
-        document.getElementById("add-payment-form").addEventListener("submit", (e) => {
-            e.preventDefault();
-            const payer = document.getElementById("payer").value;
-            const amount = document.getElementById("amount").value;
-            const receiver = document.getElementById("receiver").value;
-            const roomId = currentRoomId.textContent;
-
-            const paymentsRef = ref(database, `rooms/${roomId}/payments`);
-            push(paymentsRef, {
-                payer: payer,
-                amount: amount,
-                receiver: receiver,
-            });
-
-            // Clear form
-            document.getElementById("add-payment-form").reset();
-        });
-    </script>
+    <!-- Main JS -->
+    <script src="script.js"></script>
 </body>
 </html>
