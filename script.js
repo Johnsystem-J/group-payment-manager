@@ -21,6 +21,7 @@ const roomIdDisplay = document.getElementById("room-id");
 const playerNameDisplay = document.getElementById("player-name");
 const playerList = document.getElementById("player-list");
 const balanceSummary = document.getElementById("balance-summary");
+const transactionList = document.getElementById("transaction-list");
 const roomsList = document.getElementById("rooms-list");
 
 let currentPlayerName = null;
@@ -29,7 +30,7 @@ let currentRoomId = null;
 // Create Room
 document.getElementById("create-room-form").addEventListener("submit", (e) => {
     e.preventDefault();
-    const playerName = document.getElementById("playerName").value;
+    const playerName = document.getElementById("playerName").value.trim();
     const roomId = Math.random().toString(36).substr(2, 6);
 
     if (!playerName) {
@@ -57,19 +58,30 @@ function joinRoom(roomId, playerName = null) {
     if (playerName) currentPlayerName = playerName;
     currentRoomId = roomId;
 
-    db.ref(`rooms/${roomId}/players/${currentPlayerName}`).set(true);
+    // Check for duplicate name
+    db.ref(`rooms/${roomId}/players`).once("value", (snapshot) => {
+        const players = snapshot.val();
+        if (players && players[currentPlayerName]) {
+            alert("This name is already in use. Please choose a different name.");
+            return;
+        }
 
-    homePage.classList.add("hidden");
-    roomPage.classList.remove("hidden");
-    roomIdDisplay.textContent = roomId;
-    playerNameDisplay.textContent = currentPlayerName;
+        // Save player to Firebase
+        db.ref(`rooms/${roomId}/players/${currentPlayerName}`).set(true);
 
-    updateRoomData();
+        // Update UI
+        homePage.classList.add("hidden");
+        roomPage.classList.remove("hidden");
+        roomIdDisplay.textContent = roomId;
+        playerNameDisplay.textContent = currentPlayerName;
+
+        updateRoomData();
+    });
 }
 
 // Handle Room Click
 function handleRoomClick(roomId) {
-    const playerName = document.getElementById("playerName").value;
+    const playerName = document.getElementById("playerName").value.trim();
     if (!playerName) {
         alert("Please enter your name before joining a room.");
         return;
@@ -114,6 +126,20 @@ function updateRoomData() {
             });
         }
     });
+
+    // Listen for transactions
+    roomRef.child("transactions").on("value", (snapshot) => {
+        const transactions = snapshot.val();
+        transactionList.innerHTML = "";
+        if (transactions) {
+            Object.values(transactions).forEach((transaction) => {
+                const li = document.createElement("li");
+                li.textContent = `${transaction.payer} paid ${transaction.receiver} ${transaction.amount} ฿`;
+                li.style.color = "purple";
+                transactionList.appendChild(li);
+            });
+        }
+    });
 }
 
 // Add Payment
@@ -133,6 +159,12 @@ document.getElementById("add-payment-form").addEventListener("submit", (e) => {
         balances[currentPlayerName] = (balances[currentPlayerName] || 0) - amount;
         balances[receiver] = (balances[receiver] || 0) + amount;
         return balances;
+    });
+
+    roomRef.child("transactions").push({
+        payer: currentPlayerName,
+        receiver: receiver,
+        amount: amount
     });
 
     document.getElementById("add-payment-form").reset();
