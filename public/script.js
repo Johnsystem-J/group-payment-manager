@@ -1,152 +1,168 @@
-// Firebase Configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyD71BpGMZ0QbXdgvc73-L7SdVSWmacuohM",
-    authDomain: "group-payment-manager.firebaseapp.com",
-    databaseURL: "https://group-payment-manager-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "group-payment-manager",
-    storageBucket: "group-payment-manager.firebasestorage.app",
-    messagingSenderId: "829025220060",
-    appId: "1:829025220060:web:49fc46e0970d5385efcb19",
-    measurementId: "G-L7X9YMRE8Q"
-};
+document.addEventListener("DOMContentLoaded", () => {
+    const firebaseConfig = {
+        apiKey: "AIzaSyD71BpGMZ0QbXdgvc73-L7SdVSWmacuohM",
+        authDomain: "group-payment-manager.firebaseapp.com",
+        databaseURL: "https://group-payment-manager-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "group-payment-manager",
+        storageBucket: "group-payment-manager.firebasestorage.app",
+        messagingSenderId: "829025220060",
+        appId: "1:829025220060:web:49fc46e0970d5385efcb19",
+        measurementId: "G-L7X9YMRE8Q"
+    };
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-// DOM Elements
-const roomForm = document.getElementById("room-form");
-const roomSection = document.getElementById("room-section");
-const roomTitle = document.getElementById("room-name");
-const currentRoomId = document.getElementById("current-room-id");
-const playerTable = document.querySelector("#player-table tbody");
-const leaveRoomButton = document.getElementById("leave-room-button");
-const playerNameInput = document.getElementById("player-name");
+    let currentRoomId = null;
+    let currentPlayerName = null;
 
-// Variables
-let roomId = null;
-let roomName = null;
-let roomTimeout = null; // Variable to store the timeout for room deletion
+    const homePage = document.getElementById("home-page");
+    const roomPage = document.getElementById("room-page");
+    const roomIdDisplay = document.getElementById("room-id");
+    const playerNameDisplay = document.getElementById("player-name");
+    const playerList = document.getElementById("player-list");
+    const balanceSummary = document.getElementById("balance-summary");
+    const transactionList = document.getElementById("transaction-list");
+    const roomsList = document.getElementById("rooms-list");
+    const receiverSelect = document.getElementById("receiver");
 
-// Create or Join Room
-roomForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    roomName = document.getElementById("roomName").value;
-    roomId = document.getElementById("roomId").value || Math.random().toString(36).substr(2, 6);
+    document.getElementById("create-room-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const playerName = document.getElementById("playerName").value.trim();
+        if (!playerName) {
+            alert("Please enter your name.");
+            return;
+        }
 
-    // Check if player name is entered
-    if (!playerNameInput.value) {
-        alert("Please enter your name.");
-        return;
-    }
+        currentPlayerName = playerName;
+        const roomId = Math.random().toString(36).substr(2, 6);
 
-    // Save room details to Firebase
-    db.ref(`rooms/${roomId}`).set({
-        roomName: roomName,
-        createdAt: Date.now(),
-        players: {}
+        db.ref(`rooms/${roomId}`).set({
+            createdAt: Date.now()
+        });
+
+        joinRoom(roomId, playerName);
     });
 
-    // Add player to room
-    addPlayerToRoom(playerNameInput.value);
+    roomsList.addEventListener("click", (e) => {
+        if (e.target.tagName === "LI") {
+            const roomId = e.target.dataset.roomId;
+            const playerName = document.getElementById("playerName").value.trim();
 
-    // Update UI
-    roomForm.classList.add("hidden");
-    roomSection.classList.remove("hidden");
-    roomTitle.textContent = roomName;
-    currentRoomId.textContent = roomId;
-
-    // Listen for room updates
-    listenToRoom(roomId);
-});
-
-// Listen for players and payments in the room
-function listenToRoom(roomId) {
-    db.ref(`rooms/${roomId}`).on("value", (snapshot) => {
-        const roomData = snapshot.val();
-        if (roomData) {
-            updatePlayerList(roomData.players);
-            // If no players are in the room, start the timeout to delete the room
-            if (Object.keys(roomData.players).length === 0) {
-                startRoomTimeout(roomId);
-            } else {
-                resetRoomTimeout(); // Reset the timeout if players are present
+            if (!playerName) {
+                alert("Please enter your name.");
+                return;
             }
+
+            currentPlayerName = playerName;
+            joinRoom(roomId, playerName);
         }
     });
-}
 
-// Add player to room
-function addPlayerToRoom(playerName) {
-    const playerId = Math.random().toString(36).substr(2, 6); // Generate a unique player ID
+    function joinRoom(roomId, playerName) {
+        currentRoomId = roomId;
+        db.ref(`rooms/${roomId}/players/${playerName}`).set(true);
 
-    db.ref(`rooms/${roomId}/players/${playerId}`).set({
-        name: playerName,
-        joinedAt: Date.now()
-    });
+        homePage.classList.add("hidden");
+        roomPage.classList.remove("hidden");
+        roomIdDisplay.textContent = roomId;
+        playerNameDisplay.textContent = playerName;
 
-    playerNameInput.value = ""; // Clear the input field
-}
-
-// Update player list in the room
-function updatePlayerList(players) {
-    playerTable.innerHTML = ""; // Clear previous list
-    Object.keys(players).forEach(playerId => {
-        const player = players[playerId];
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td>${player.name}</td>
-        `;
-        playerTable.appendChild(row);
-    });
-}
-
-// Start the room deletion timeout (1 minute)
-function startRoomTimeout(roomId) {
-    if (roomTimeout) clearTimeout(roomTimeout); // Clear any existing timeout
-
-    roomTimeout = setTimeout(() => {
-        deleteRoom(roomId); // Delete room after 1 minute
-    }, 60000); // 60 seconds (1 minute)
-}
-
-// Reset the room deletion timeout if there are players in the room
-function resetRoomTimeout() {
-    if (roomTimeout) {
-        clearTimeout(roomTimeout); // Reset timeout if players are still in the room
+        listenToRoom(roomId);
     }
-}
 
-// Delete room from Firebase
-function deleteRoom(roomId) {
-    db.ref(`rooms/${roomId}`).remove()
-        .then(() => {
-            alert("Room has been deleted due to inactivity.");
-            window.location.href = '/'; // Redirect to home page or reset the app state
-        })
-        .catch((error) => {
-            console.error("Error deleting room:", error);
+    function listenToRoom(roomId) {
+        db.ref(`rooms/${roomId}/players`).on("value", (snapshot) => {
+            const players = snapshot.val();
+            playerList.innerHTML = "";
+            receiverSelect.innerHTML = `<option value="" disabled selected>Select Receiver</option>`;
+            if (players) {
+                Object.keys(players).forEach((player) => {
+                    const li = document.createElement("li");
+                    li.textContent = player;
+                    playerList.appendChild(li);
+
+                    if (player !== currentPlayerName) {
+                        const option = document.createElement("option");
+                        option.value = player;
+                        option.textContent = player;
+                        receiverSelect.appendChild(option);
+                    }
+                });
+            }
         });
-}
 
-// Leave Room
-leaveRoomButton.addEventListener("click", () => {
-    const playerName = playerNameInput.value;
-    if (playerName) {
-        const playerRef = db.ref(`rooms/${roomId}/players`);
-        playerRef.once('value', (snapshot) => {
-            snapshot.forEach(childSnapshot => {
-                if (childSnapshot.val().name === playerName) {
-                    childSnapshot.ref.remove();
-                }
+        db.ref(`rooms/${roomId}/transactions`).on("value", (snapshot) => {
+            const transactions = snapshot.val();
+            transactionList.innerHTML = "";
+            balanceSummary.innerHTML = "";
+            const balances = {};
+
+            if (transactions) {
+                Object.values(transactions).forEach((transaction) => {
+                    const li = document.createElement("li");
+                    li.textContent = `${transaction.date} - ${transaction.sender} paid ${transaction.receiver} ${transaction.amount} ฿`;
+                    transactionList.appendChild(li);
+
+                    balances[transaction.sender] = (balances[transaction.sender] || 0) - transaction.amount;
+                    balances[transaction.receiver] = (balances[transaction.receiver] || 0) + transaction.amount;
+                });
+            }
+
+            Object.keys(balances).forEach((player) => {
+                const li = document.createElement("li");
+                li.textContent = `${player}: ${balances[player]} ฿`;
+                balanceSummary.appendChild(li);
             });
         });
     }
 
-    // Reset the UI and Firebase references
-    roomForm.classList.remove("hidden");
-    roomSection.classList.add("hidden");
-    document.getElementById("player-name").value = ""; // Clear input
-    currentRoomId.textContent = "";
-    roomId = null;
+    document.getElementById("add-transaction-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const receiver = document.getElementById("receiver").value.trim();
+        const amount = parseFloat(document.getElementById("amount").value);
+
+        if (!receiver || isNaN(amount)) {
+            alert("Please provide valid inputs.");
+            return;
+        }
+
+        const transaction = {
+            sender: currentPlayerName,
+            receiver: receiver,
+            amount: amount,
+            date: new Date().toLocaleString()
+        };
+
+        db.ref(`rooms/${currentRoomId}/transactions`).push(transaction);
+        document.getElementById("add-transaction-form").reset();
+    });
+
+    document.getElementById("leave-room").addEventListener("click", () => {
+        db.ref(`rooms/${currentRoomId}/players/${currentPlayerName}`).remove();
+        db.ref(`rooms/${currentRoomId}/players`).once("value", (snapshot) => {
+            if (!snapshot.exists()) {
+                db.ref(`rooms/${currentRoomId}`).remove();
+            }
+        });
+
+        homePage.classList.remove("hidden");
+        roomPage.classList.add("hidden");
+        currentRoomId = null;
+        currentPlayerName = null;
+    });
+
+    db.ref("rooms").on("value", (snapshot) => {
+        const rooms = snapshot.val();
+        roomsList.innerHTML = "";
+
+        if (rooms) {
+            Object.keys(rooms).forEach((roomId) => {
+                const li = document.createElement("li");
+                li.textContent = `Room ID: ${roomId}`;
+                li.dataset.roomId = roomId;
+                roomsList.appendChild(li);
+            });
+        }
+    });
 });
