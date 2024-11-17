@@ -130,15 +130,7 @@ function updateRoomData() {
     // Listen for transactions
     roomRef.child("transactions").on("value", (snapshot) => {
         const transactions = snapshot.val();
-        transactionList.innerHTML = "";
-        if (transactions) {
-            Object.values(transactions).forEach((transaction) => {
-                const li = document.createElement("li");
-                li.textContent = `${transaction.payer} paid ${transaction.receiver} ${transaction.amount} ฿`;
-                li.style.color = "purple";
-                transactionList.appendChild(li);
-            });
-        }
+        updateTransactions(transactions);
     });
 }
 
@@ -154,6 +146,8 @@ document.getElementById("add-payment-form").addEventListener("submit", (e) => {
     }
 
     const roomRef = db.ref(`rooms/${currentRoomId}`);
+    const timestamp = new Date().toISOString(); // Add timestamp
+
     roomRef.child("balances").transaction((balances) => {
         if (!balances) balances = {};
         balances[currentPlayerName] = (balances[currentPlayerName] || 0) - amount;
@@ -164,11 +158,37 @@ document.getElementById("add-payment-form").addEventListener("submit", (e) => {
     roomRef.child("transactions").push({
         payer: currentPlayerName,
         receiver: receiver,
-        amount: amount
+        amount: amount,
+        timestamp: timestamp
     });
 
     document.getElementById("add-payment-form").reset();
 });
+
+// Update Transactions
+function updateTransactions(transactions) {
+    transactionList.innerHTML = "";
+    if (transactions) {
+        Object.values(transactions).forEach((transaction) => {
+            const li = document.createElement("li");
+
+            // Format timestamp
+            const date = new Date(transaction.timestamp);
+            const formattedDate = date.toLocaleString("en-GB", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+            });
+
+            li.textContent = `${formattedDate} - ${transaction.payer} paid ${transaction.receiver} ${transaction.amount} ฿`;
+            li.style.color = "purple";
+            transactionList.appendChild(li);
+        });
+    }
+}
 
 // Leave Room
 document.getElementById("leave-room").addEventListener("click", () => {
