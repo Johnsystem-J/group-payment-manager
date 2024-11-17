@@ -136,7 +136,7 @@ p {
 
 @media (min-width: 1024px) {
     .container {
-        width: 60%;
+        width: 80%;
         max-width: 800px;
         padding: 30px;
     }

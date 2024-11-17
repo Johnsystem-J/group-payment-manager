@@ -21,6 +21,7 @@ const roomTitle = document.getElementById("room-name");
 const currentRoomId = document.getElementById("current-room-id");
 const playerTable = document.querySelector("#player-table tbody");
 const leaveRoomButton = document.getElementById("leave-room-button");
+const playerNameInput = document.getElementById("player-name");
 
 // Variables
 let roomId = null;
@@ -33,12 +34,21 @@ roomForm.addEventListener("submit", (e) => {
     roomName = document.getElementById("roomName").value;
     roomId = document.getElementById("roomId").value || Math.random().toString(36).substr(2, 6);
 
+    // Check if player name is entered
+    if (!playerNameInput.value) {
+        alert("Please enter your name.");
+        return;
+    }
+
     // Save room details to Firebase
     db.ref(`rooms/${roomId}`).set({
         roomName: roomName,
         createdAt: Date.now(),
         players: {}
     });
+
+    // Add player to room
+    addPlayerToRoom(playerNameInput.value);
 
     // Update UI
     roomForm.classList.add("hidden");
@@ -67,24 +77,16 @@ function listenToRoom(roomId) {
 }
 
 // Add player to room
-document.getElementById("player-name-form").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const playerName = document.getElementById("player-name").value;
+function addPlayerToRoom(playerName) {
     const playerId = Math.random().toString(36).substr(2, 6); // Generate a unique player ID
 
-    if (!playerName) {
-        alert("Please enter your name.");
-        return;
-    }
-
-    // Add player to the room
     db.ref(`rooms/${roomId}/players/${playerId}`).set({
         name: playerName,
         joinedAt: Date.now()
     });
 
-    document.getElementById("player-name").value = ""; // Clear the input field
-});
+    playerNameInput.value = ""; // Clear the input field
+}
 
 // Update player list in the room
 function updatePlayerList(players) {
@@ -129,7 +131,7 @@ function deleteRoom(roomId) {
 
 // Leave Room
 leaveRoomButton.addEventListener("click", () => {
-    const playerName = document.getElementById("player-name").value;
+    const playerName = playerNameInput.value;
     if (playerName) {
         const playerRef = db.ref(`rooms/${roomId}/players`);
         playerRef.once('value', (snapshot) => {
