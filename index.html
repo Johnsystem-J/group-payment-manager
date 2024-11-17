@@ -3,53 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Group</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Real-Time Group Payment</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container my-5">
-        <h1 class="text-center mb-4">🎴 Group Payment Manager</h1>
-        
-        <!-- Form for Creating or Joining a Room -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <form id="room-form">
-                    <div class="mb-3">
-                        <label for="roomName" class="form-label">Room Name:</label>
-                        <input type="text" id="roomName" class="form-control" placeholder="Enter room name" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="roomId" class="form-label">Room ID:</label>
-                        <input type="text" id="roomId" class="form-control" placeholder="Enter room ID (optional)">
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Create / Join Room</button>
-                </form>
-            </div>
+    <div class="container">
+        <h1>🎴 Real-Time Group Payment</h1>
+
+        <!-- Create/Join Room Section -->
+        <div id="form-section">
+            <form id="room-form">
+                <label for="roomName">Room Name:</label>
+                <input type="text" id="roomName" placeholder="Enter room name" required>
+                <label for="roomId">Room ID (Optional):</label>
+                <input type="text" id="roomId" placeholder="Enter room ID">
+                <button type="submit">Create / Join Room</button>
+            </form>
         </div>
 
-        <!-- Payment Table -->
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title">💸 Payment Table</h4>
-                <table class="table table-bordered" id="paymentTable">
-                    <thead>
-                        <tr>
-                            <th>Player</th>
-                            <th>Owes</th>
-                            <th>To</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Rows will be added dynamically -->
-                    </tbody>
-                </table>
+        <!-- Room Details Section -->
+        <div id="room-section" class="hidden">
+            <h2 id="room-title"></h2>
+            <p><strong>Room ID:</strong> <span id="current-room-id"></span></p>
+
+            <!-- Add Payment Form -->
+            <form id="add-payment-form">
+                <label for="payer">Payer:</label>
+                <input type="text" id="payer" placeholder="Enter payer's name" required>
+                <label for="amount">Amount:</label>
+                <input type="number" id="amount" placeholder="Enter amount" required>
+                <label for="receiver">Receiver:</label>
+                <input type="text" id="receiver" placeholder="Enter receiver's name" required>
+                <button type="submit">Add Payment</button>
+            </form>
+
+            <!-- Payment Table -->
+            <table id="player-table">
+                <thead>
+                    <tr>
+                        <th>Payer</th>
+                        <th>Amount</th>
+                        <th>Receiver</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+
+            <!-- QR Code Section -->
+            <div id="qr-section">
+                <label for="promptpay-number">PromptPay Number:</label>
+                <input type="text" id="promptpay-number" placeholder="Enter PromptPay number">
+                <button id="generate-qr">Generate QR Code</button>
+                <div id="qr-code-container"></div>
             </div>
         </div>
     </div>
-
-    <!-- JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

@@ -1,45 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const roomForm = document.getElementById("room-form");
-    const paymentTableBody = document.querySelector("#paymentTable tbody");
-
-    // Sample data for payment table
-    const payments = [
-        { player: "Player A", owes: "100", to: "Player B" },
-        { player: "Player C", owes: "50", to: "Player A" },
-    ];
-
-    // Populate the table with sample data
-    function populateTable() {
-        paymentTableBody.innerHTML = ""; // Clear existing rows
-        payments.forEach((payment) => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${payment.player}</td>
-                <td>${payment.owes} ฿</td>
-                <td>${payment.to}</td>
-            `;
-            paymentTableBody.appendChild(row);
-        });
-    }
-
-    // Handle form submission
-    roomForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const roomName = document.getElementById("roomName").value;
-        const roomId = document.getElementById("roomId").value || Math.floor(1000 + Math.random() * 9000);
-        alert(`Room Created/Joined Successfully!\nRoom Name: ${roomName}\nRoom ID: ${roomId}`);
-    });
-
-    // Initial population of the table
-    populateTable();
-});
-
-// Include Firebase CDN in your HTML file
-// Add this script tag in your <head> section of index.html:
-// <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
-// <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
-
-// Your web app's Firebase configuration
+// Firebase Configuration
 const firebaseConfig = {
     apiKey: "AIzaSyD71BpGMZ0QbXdgvc73-L7SdVSWmacuohM",
     authDomain: "group-payment-manager.firebaseapp.com",
@@ -53,6 +12,80 @@ const firebaseConfig = {
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-// Initialize Realtime Database
-const database = firebase.database();
+// DOM Elements
+const roomForm = document.getElementById("room-form");
+const roomSection = document.getElementById("room-section");
+const roomTitle = document.getElementById("room-title");
+const currentRoomId = document.getElementById("current-room-id");
+const playerTable = document.querySelector("#player-table tbody");
+
+// Create or Join Room
+roomForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const roomName = document.getElementById("roomName").value;
+    const roomId = document.getElementById("roomId").value || Math.random().toString(36).substr(2, 6);
+
+    // Save room details to Firebase
+    db.ref(`rooms/${roomId}`).set({
+        roomName: roomName,
+        createdAt: Date.now(),
+    });
+
+    // Update UI
+    roomForm.classList.add("hidden");
+    roomSection.classList.remove("hidden");
+    roomTitle.textContent = roomName;
+    currentRoomId.textContent = roomId;
+
+    // Listen for room updates
+    listenToRoom(roomId);
+});
+
+// Listen for payments in the room
+function listenToRoom(roomId) {
+    db.ref(`rooms/${roomId}/payments`).on("value", (snapshot) => {
+        const payments = snapshot.val();
+        playerTable.innerHTML = ""; // Clear table
+        if (payments) {
+            Object.keys(payments).forEach((key) => {
+                const payment = payments[key];
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${payment.payer}</td>
+                    <td>${payment.amount} ฿</td>
+                    <td>${payment.receiver}</td>
+                `;
+                playerTable.appendChild(row);
+            });
+        }
+    });
+}
+
+// Add payment to Firebase
+document.getElementById("add-payment-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const payer = document.getElementById("payer").value;
+    const amount = document.getElementById("amount").value;
+    const receiver = document.getElementById("receiver").value;
+    const roomId = currentRoomId.textContent;
+
+    db.ref(`rooms/${roomId}/payments`).push({
+        payer: payer,
+        amount: amount,
+        receiver: receiver,
+    });
+
+    // Clear form
+    document.getElementById("add-payment-form").reset();
+});
+
+// Generate QR Code
+document.getElementById("generate-qr").addEventListener("click", () => {
+    const promptpayNumber = document.getElementById("promptpay-number").value;
+    const amount = document.getElementById("amount").value;
+    const qrCodeUrl = `https://promptpay.io/${promptpayNumber}/${amount}`;
+    const qrCodeContainer = document.getElementById("qr-code-container");
+    qrCodeContainer.innerHTML = `<img src="${qrCodeUrl}" alt="PromptPay QR Code">`;
+});
