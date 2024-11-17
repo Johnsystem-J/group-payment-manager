@@ -4,7 +4,7 @@ const firebaseConfig = {
     authDomain: "group-payment-manager.firebaseapp.com",
     databaseURL: "https://group-payment-manager-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "group-payment-manager",
-    storageBucket: "group-payment-manager.firebasedatabase.app",
+    storageBucket: "group-payment-manager.firebasestorage.app",
     messagingSenderId: "829025220060",
     appId: "1:829025220060:web:49fc46e0970d5385efcb19",
     measurementId: "G-L7X9YMRE8Q"
@@ -48,7 +48,7 @@ roomForm.addEventListener("submit", (e) => {
     // Update UI
     roomForm.classList.add("hidden");
     roomSection.classList.remove("hidden");
-    roomTitle.textContent = roomId;
+    roomTitle.textContent = `Room ID: ${roomId}`;
     currentRoomId.textContent = roomId;
 
     listenToRoom(roomId);
@@ -59,25 +59,26 @@ function listenToRoom(roomId) {
     // Update player list and summary
     db.ref(`rooms/${roomId}/balances`).on("value", (snapshot) => {
         const balances = snapshot.val();
+        if (!balances) return;
+
+        // Clear old data
         playerList.innerHTML = "";
         summaryTable.innerHTML = "";
 
-        if (balances) {
-            Object.keys(balances).forEach((player) => {
-                // Update player list
-                const li = document.createElement("li");
-                li.textContent = player;
-                playerList.appendChild(li);
+        Object.keys(balances).forEach((player) => {
+            // Update player list
+            const li = document.createElement("li");
+            li.textContent = player;
+            playerList.appendChild(li);
 
-                // Update summary table
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${player}</td>
-                    <td>${balances[player]} ฿</td>
-                `;
-                summaryTable.appendChild(row);
-            });
-        }
+            // Update summary table
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${player}</td>
+                <td>${balances[player]} ฿</td>
+            `;
+            summaryTable.appendChild(row);
+        });
     });
 }
 
