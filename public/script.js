@@ -51,6 +51,11 @@ joinForm.addEventListener("submit", (e) => {
     const playerName = document.getElementById("playerName").value;
     const roomId = document.getElementById("roomId").value || Math.random().toString(36).substr(2, 6);
 
+    if (!playerName) {
+        alert("Please enter your name before joining a room.");
+        return;
+    }
+
     joinRoom(roomId, playerName);
 });
 
@@ -70,12 +75,26 @@ function joinRoom(roomId, playerName = null) {
 
 leaveRoomButton.addEventListener("click", () => {
     db.ref(`rooms/${currentRoomId}/players/${currentPlayerName}`).remove().then(() => {
+        checkEmptyRoom();
         homePage.classList.remove("hidden");
         roomPage.classList.add("hidden");
         currentRoomId = null;
         currentPlayerName = null;
     });
 });
+
+function checkEmptyRoom() {
+    db.ref(`rooms/${currentRoomId}/players`).once("value", (snapshot) => {
+        if (!snapshot.exists()) {
+            setTimeout(() => {
+                db.ref(`rooms/${currentRoomId}`).once("value", (snapshot) => {
+                    if (!snapshot.exists()) return;
+                    db.ref(`rooms/${currentRoomId}`).remove();
+                });
+            }, 300000); // 5 minutes
+        }
+    });
+}
 
 function updateRoomData() {
     db.ref(`rooms/${currentRoomId}`).on("value", (snapshot) => {
