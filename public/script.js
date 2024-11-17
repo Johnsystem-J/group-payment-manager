@@ -15,77 +15,130 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // DOM Elements
-const roomForm = document.getElementById("room-form");
-const roomSection = document.getElementById("room-section");
-const currentRoomId = document.getElementById("current-room-id");
+const joinForm = document.getElementById("join-room-form");
+const homePage = document.getElementById("home-page");
+const roomPage = document.getElementById("room-page");
+const roomIdDisplay = document.getElementById("current-room-id");
+const playerNameDisplay = document.getElementById("current-player-name");
 const playerList = document.getElementById("player-list");
-const receiverSelect = document.getElementById("receiver");
+const transactionsList = document.getElementById("transactions-list");
+const summaryList = document.getElementById("summary-list");
+const receiverDropdown = document.getElementById("receiver");
 
-// Event Listener for Room Form
-roomForm.addEventListener("submit", (e) => {
+// State
+let currentRoomId = null;
+let currentPlayerName = null;
+
+// Fetch available rooms
+db.ref("rooms").on("value", (snapshot) => {
+    const roomsList = document.getElementById("rooms-list");
+    roomsList.innerHTML = "";
+    const rooms = snapshot.val();
+    if (rooms) {
+        Object.keys(rooms).forEach((roomId) => {
+            const li = document.createElement("li");
+            li.textContent = `Room ID: ${roomId}`;
+            roomsList.appendChild(li);
+        });
+    }
+});
+
+// Join or create room
+joinForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const playerName = document.getElementById("playerName").value;
     const roomId = document.getElementById("roomId").value || Math.random().toString(36).substr(2, 6);
 
-    // Save player to Firebase
-    const playerRef = db.ref(`rooms/${roomId}/players/${playerName}`);
-    playerRef.set(0); // Default balance is 0
+    currentPlayerName = playerName;
+    currentRoomId = roomId;
 
-    // Update UI
-    roomForm.classList.add("hidden");
-    roomSection.classList.remove("hidden");
-    currentRoomId.textContent = roomId;
+    db.ref(`rooms/${roomId}/players/${playerName}`).set(true);
 
-    // Listen for room updates
-    listenToRoom(roomId);
+    homePage.classList.add("hidden");
+    roomPage.classList.remove("hidden");
+    roomIdDisplay.textContent = roomId;
+    playerNameDisplay.textContent = playerName;
+
+    updateRoomData();
 });
 
-// Listen to Room Changes
-function listenToRoom(roomId) {
-    db.ref(`rooms/${roomId}/players`).on("value", (snapshot) => {
-        const players = snapshot.val();
-        playerList.innerHTML = ""; // Clear list
-        receiverSelect.innerHTML = ""; // Clear select options
+// Update room data
+function updateRoomData() {
+    db.ref(`rooms/${currentRoomId}`).on("value", (snapshot) => {
+        const roomData = snapshot.val();
+        updatePlayerList(roomData.players || {});
+        updateTransactions(roomData.transactions || {});
+        updateSummary(roomData.players || {});
+    });
+}
 
-        if (players) {
-            Object.keys(players).forEach((playerName) => {
-                const balance = players[playerName];
-                
-                // Update Player List
-                const li = document.createElement("li");
-                li.textContent = `${playerName}: ${balance} ฿`;
-                playerList.appendChild(li);
+// Update player list
+function updatePlayerList(players) {
+    playerList.innerHTML = "";
+    receiverDropdown.innerHTML = "";
+    Object.keys(players).forEach((player) => {
+        const li = document.createElement("li");
+        li.textContent = player;
+        playerList.appendChild(li);
 
-                // Update Receiver Select
-                const option = document.createElement("option");
-                option.value = playerName;
-                option.textContent = playerName;
-                receiverSelect.appendChild(option);
-            });
+        if (player !== currentPlayerName) {
+            const option = document.createElement("option");
+            option.value = player;
+            option.textContent = player;
+            receiverDropdown.appendChild(option);
         }
     });
 }
 
-// Add Payment
+// Add payment
 document.getElementById("add-payment-form").addEventListener("submit", (e) => {
     e.preventDefault();
     const amount = parseFloat(document.getElementById("amount").value);
-    const receiver = document.getElementById("receiver").value;
-    const roomId = currentRoomId.textContent;
-    const sender = document.getElementById("playerName").value;
+    const receiver = receiverDropdown.value;
 
-    if (sender === receiver) {
-        alert("You cannot send money to yourself!");
-        return;
-    }
+    const transactionsRef = db.ref(`rooms/${currentRoomId}/transactions`);
+    transactionsRef.push({
+        payer: currentPlayerName,
+        receiver: receiver,
+        amount: amount,
+    });
 
-    // Update balances
-    const senderRef = db.ref(`rooms/${roomId}/players/${sender}`);
-    const receiverRef = db.ref(`rooms/${roomId}/players/${receiver}`);
-
-    senderRef.transaction((balance) => (balance || 0) - amount);
-    receiverRef.transaction((balance) => (balance || 0) + amount);
-
-    // Clear Form
     document.getElementById("add-payment-form").reset();
 });
+
+// Update transactions
+function updateTransactions(transactions) {
+    transactionsList.innerHTML = "";
+    Object.values(transactions).forEach((transaction) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${transaction.payer}</td>
+            <td>${transaction.amount} ฿</td>
+            <td>${transaction.receiver}</td>
+        `;
+        transactionsList.appendChild(tr);
+    });
+}
+
+// Update summary
+function updateSummary(players) {
+    const balances = {};
+    Object.keys(players).forEach((player) => (balances[player] = 0));
+
+    db.ref(`rooms/${currentRoomId}/transactions`).once("value", (snapshot) => {
+        const transactions = snapshot.val();
+        if (transactions) {
+            Object.values(transactions).forEach(({ payer, receiver, amount }) => {
+                balances[payer] -= amount;
+                balances[receiver] += amount;
+            });
+        }
+
+        summaryList.innerHTML = "";
+        Object.keys(balances).forEach((player) => {
+            const li = document.createElement("li");
+            li.textContent = `${player}: ${balances[player]} ฿`;
+            summaryList.appendChild(li);
+        });
+    });
+}

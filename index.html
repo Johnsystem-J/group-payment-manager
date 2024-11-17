@@ -3,38 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Group Payment Manager</title>
+    <title>Real-Time Payment Manager</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <h1>Group Payment Manager</h1>
-    </header>
-    <main>
-        <section id="room-form-section">
-            <form id="room-form">
+    <div class="container">
+        <div id="home-page">
+            <h1>Welcome to Payment Manager</h1>
+            <form id="join-room-form">
                 <label for="playerName">Your Name:</label>
-                <input type="text" id="playerName" required>
-                <label for="roomId">Room ID (leave empty to create new):</label>
-                <input type="text" id="roomId">
-                <button type="submit">Create/Join Room</button>
+                <input type="text" id="playerName" placeholder="Enter your name" required>
+                <label for="roomId">Room ID:</label>
+                <input type="text" id="roomId" placeholder="Enter Room ID or leave blank to create new">
+                <button type="submit">Join Room</button>
             </form>
-        </section>
-        <section id="room-section" class="hidden">
-            <h2>Room: <span id="current-room-id"></span></h2>
-            <div>
-                <h3>Player Balances</h3>
-                <ul id="player-list"></ul>
+            <div id="available-rooms">
+                <h2>Available Rooms</h2>
+                <ul id="rooms-list"></ul>
             </div>
+        </div>
+
+        <div id="room-page" class="hidden">
+            <h1>Room: <span id="current-room-id"></span></h1>
+            <h2>Player: <span id="current-player-name"></span></h2>
+            <button id="leave-room">Leave Room</button>
+            <h3>Players</h3>
+            <ul id="player-list"></ul>
+            <h3>Add Payment</h3>
             <form id="add-payment-form">
                 <label for="amount">Amount:</label>
-                <input type="number" id="amount" required>
+                <input type="number" id="amount" placeholder="Enter amount" required>
                 <label for="receiver">Receiver:</label>
                 <select id="receiver"></select>
-                <button type="submit">Submit Payment</button>
+                <button type="submit">Pay</button>
             </form>
-        </section>
-    </main>
+            <h3>Transactions</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Payer</th>
+                        <th>Amount</th>
+                        <th>Receiver</th>
+                    </tr>
+                </thead>
+                <tbody id="transactions-list"></tbody>
+            </table>
+            <h3>Summary</h3>
+            <ul id="summary-list"></ul>
+        </div>
+    </div>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="script.js"></script>
