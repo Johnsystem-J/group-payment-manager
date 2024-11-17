@@ -24,6 +24,7 @@ const playerList = document.getElementById("player-list");
 const transactionsList = document.getElementById("transactions-list");
 const summaryList = document.getElementById("summary-list");
 const receiverDropdown = document.getElementById("receiver");
+const leaveRoomButton = document.getElementById("leave-room");
 
 // State
 let currentRoomId = null;
@@ -38,6 +39,7 @@ db.ref("rooms").on("value", (snapshot) => {
         Object.keys(rooms).forEach((roomId) => {
             const li = document.createElement("li");
             li.textContent = `Room ID: ${roomId}`;
+            li.addEventListener("click", () => joinRoom(roomId));
             roomsList.appendChild(li);
         });
     }
@@ -49,20 +51,32 @@ joinForm.addEventListener("submit", (e) => {
     const playerName = document.getElementById("playerName").value;
     const roomId = document.getElementById("roomId").value || Math.random().toString(36).substr(2, 6);
 
-    currentPlayerName = playerName;
+    joinRoom(roomId, playerName);
+});
+
+function joinRoom(roomId, playerName = null) {
+    if (playerName) currentPlayerName = playerName;
     currentRoomId = roomId;
 
-    db.ref(`rooms/${roomId}/players/${playerName}`).set(true);
+    db.ref(`rooms/${roomId}/players/${currentPlayerName}`).set(true);
 
     homePage.classList.add("hidden");
     roomPage.classList.remove("hidden");
     roomIdDisplay.textContent = roomId;
-    playerNameDisplay.textContent = playerName;
+    playerNameDisplay.textContent = currentPlayerName;
 
     updateRoomData();
+}
+
+leaveRoomButton.addEventListener("click", () => {
+    db.ref(`rooms/${currentRoomId}/players/${currentPlayerName}`).remove().then(() => {
+        homePage.classList.remove("hidden");
+        roomPage.classList.add("hidden");
+        currentRoomId = null;
+        currentPlayerName = null;
+    });
 });
 
-// Update room data
 function updateRoomData() {
     db.ref(`rooms/${currentRoomId}`).on("value", (snapshot) => {
         const roomData = snapshot.val();
@@ -72,7 +86,6 @@ function updateRoomData() {
     });
 }
 
-// Update player list
 function updatePlayerList(players) {
     playerList.innerHTML = "";
     receiverDropdown.innerHTML = "";
@@ -90,14 +103,12 @@ function updatePlayerList(players) {
     });
 }
 
-// Add payment
 document.getElementById("add-payment-form").addEventListener("submit", (e) => {
     e.preventDefault();
     const amount = parseFloat(document.getElementById("amount").value);
     const receiver = receiverDropdown.value;
 
-    const transactionsRef = db.ref(`rooms/${currentRoomId}/transactions`);
-    transactionsRef.push({
+    db.ref(`rooms/${currentRoomId}/transactions`).push({
         payer: currentPlayerName,
         receiver: receiver,
         amount: amount,
@@ -106,7 +117,6 @@ document.getElementById("add-payment-form").addEventListener("submit", (e) => {
     document.getElementById("add-payment-form").reset();
 });
 
-// Update transactions
 function updateTransactions(transactions) {
     transactionsList.innerHTML = "";
     Object.values(transactions).forEach((transaction) => {
@@ -120,7 +130,6 @@ function updateTransactions(transactions) {
     });
 }
 
-// Update summary
 function updateSummary(players) {
     const balances = {};
     Object.keys(players).forEach((player) => (balances[player] = 0));
@@ -128,9 +137,9 @@ function updateSummary(players) {
     db.ref(`rooms/${currentRoomId}/transactions`).once("value", (snapshot) => {
         const transactions = snapshot.val();
         if (transactions) {
-            Object.values(transactions).forEach(({ payer, receiver, amount }) => {
-                balances[payer] -= amount;
-                balances[receiver] += amount;
+            Object.values(transactions).forEach((transaction) => {
+                balances[transaction.payer] -= transaction.amount;
+                balances[transaction.receiver] += transaction.amount;
             });
         }
 
