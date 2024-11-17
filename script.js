@@ -33,3 +33,26 @@ document.addEventListener("DOMContentLoaded", () => {
     // Initial population of the table
     populateTable();
 });
+
+// Include Firebase CDN in your HTML file
+// Add this script tag in your <head> section of index.html:
+// <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+// <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyD71BpGMZ0QbXdgvc73-L7SdVSWmacuohM",
+    authDomain: "group-payment-manager.firebaseapp.com",
+    databaseURL: "https://group-payment-manager-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "group-payment-manager",
+    storageBucket: "group-payment-manager.firebasestorage.app",
+    messagingSenderId: "829025220060",
+    appId: "1:829025220060:web:49fc46e0970d5385efcb19",
+    measurementId: "G-L7X9YMRE8Q"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+
+// Initialize Realtime Database
+const database = firebase.database();
