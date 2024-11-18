@@ -109,11 +109,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             }
 
-            Object.keys(balances).forEach((player) => {
-                const li = document.createElement("li");
-                li.textContent = `${player}: ${balances[player]} ฿`;
-                balanceSummary.appendChild(li);
-            });
+            // Balance Summary: Show who should pay whom
+            if (Object.keys(balances).length > 2) {
+                for (const player in balances) {
+                    if (balances[player] < 0) {
+                        const li = document.createElement("li");
+                        li.textContent = `${player} needs to pay ${Math.abs(balances[player])} ฿`;
+                        balanceSummary.appendChild(li);
+                    } else if (balances[player] > 0) {
+                        const li = document.createElement("li");
+                        li.textContent = `${player} should receive ${balances[player]} ฿`;
+                        balanceSummary.appendChild(li);
+                    }
+                }
+            }
         });
     }
 
