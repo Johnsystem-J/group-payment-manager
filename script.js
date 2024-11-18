@@ -15,17 +15,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let currentRoomId = null;
     let currentPlayerName = null;
+    const playerColors = {};
 
     const homePage = document.getElementById("home-page");
     const roomPage = document.getElementById("room-page");
     const roomIdDisplay = document.getElementById("room-id");
     const playerNameDisplay = document.getElementById("player-name");
     const playerList = document.getElementById("player-list");
-    const balanceSummary = document.getElementById("balance-summary");
+    const balanceSummaryList = document.getElementById("balance-summary-list");
     const transactionList = document.getElementById("transaction-list");
     const roomsList = document.getElementById("rooms-list");
     const receiverSelect = document.getElementById("receiver");
 
+    // Create Room
     document.getElementById("create-room-form").addEventListener("submit", (e) => {
         e.preventDefault();
         const playerName = document.getElementById("playerName").value.trim();
@@ -44,6 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
         joinRoom(roomId, playerName);
     });
 
+    // Join Room
     roomsList.addEventListener("click", (e) => {
         if (e.target.tagName === "LI") {
             const roomId = e.target.dataset.roomId;
@@ -59,6 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    // Function to join room and set player data
     function joinRoom(roomId, playerName) {
         currentRoomId = roomId;
         db.ref(`rooms/${roomId}/players/${playerName}`).set(true);
@@ -71,15 +75,20 @@ document.addEventListener("DOMContentLoaded", () => {
         listenToRoom(roomId);
     }
 
+    // Listen to room for player data and transactions
     function listenToRoom(roomId) {
         db.ref(`rooms/${roomId}/players`).on("value", (snapshot) => {
             const players = snapshot.val();
             playerList.innerHTML = "";
             receiverSelect.innerHTML = `<option value="" disabled selected>Select Receiver</option>`;
+
+            // Create player list and random colors for players
             if (players) {
                 Object.keys(players).forEach((player) => {
+                    const color = playerColors[player] || (playerColors[player] = getRandomColor());
                     const li = document.createElement("li");
                     li.textContent = player;
+                    li.style.color = color;
                     playerList.appendChild(li);
 
                     if (player !== currentPlayerName) {
@@ -92,12 +101,14 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
+        // Listening for transactions and updating Balance Summary
         db.ref(`rooms/${roomId}/transactions`).on("value", (snapshot) => {
             const transactions = snapshot.val();
             transactionList.innerHTML = "";
-            balanceSummary.innerHTML = "";
+            balanceSummaryList.innerHTML = "";
             const balances = {};
 
+            // Populate transactions and calculate balances
             if (transactions) {
                 Object.values(transactions).forEach((transaction) => {
                     const li = document.createElement("li");
@@ -109,23 +120,30 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             }
 
-            // Balance Summary: Show who should pay whom
-            if (Object.keys(balances).length > 2) {
-                for (const player in balances) {
-                    if (balances[player] < 0) {
-                        const li = document.createElement("li");
-                        li.textContent = `${player} needs to pay ${Math.abs(balances[player])} ฿`;
-                        balanceSummary.appendChild(li);
-                    } else if (balances[player] > 0) {
-                        const li = document.createElement("li");
-                        li.textContent = `${player} should receive ${balances[player]} ฿`;
-                        balanceSummary.appendChild(li);
-                    }
-                }
-            }
+            // Create Balance Summary Table
+            const players = Object.keys(balances);
+            const table = document.createElement('table');
+            table.style.width = "100%";
+            table.style.borderCollapse = "collapse";
+            const headerRow = document.createElement('tr');
+            headerRow.innerHTML = `<th>Player</th>` + players.map(player => `<th>${player}</th>`).join('');
+            table.appendChild(headerRow);
+
+            players.forEach(player => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${player}</td>` + players.map(otherPlayer => {
+                    const amount = (balances[otherPlayer] || 0) - (balances[player] || 0);
+                    const color = amount < 0 ? 'red' : 'green';
+                    return `<td style="color:${color}">${amount} ฿</td>`;
+                }).join('');
+                table.appendChild(row);
+            });
+
+            balanceSummaryList.appendChild(table);
         });
     }
 
+    // Add transaction
     document.getElementById("add-transaction-form").addEventListener("submit", (e) => {
         e.preventDefault();
         const receiver = document.getElementById("receiver").value.trim();
@@ -147,6 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("add-transaction-form").reset();
     });
 
+    // Leave Room
     document.getElementById("leave-room").addEventListener("click", () => {
         db.ref(`rooms/${currentRoomId}/players/${currentPlayerName}`).remove();
         db.ref(`rooms/${currentRoomId}/players`).once("value", (snapshot) => {
@@ -174,4 +193,14 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
     });
+
+    // Function to generate random color for players
+    function getRandomColor() {
+        const letters = "0123456789ABCDEF";
+        let color = "#";
+        for (let i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
 });

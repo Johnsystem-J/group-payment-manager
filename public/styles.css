@@ -1,155 +1,92 @@
 body {
-    font-family: 'Arial', sans-serif;
-    background: linear-gradient(to bottom, #f9fafc, #dde1e7);
-    margin: 0;
-    padding: 0;
-    color: #333;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-}
-
-h1, h2 {
-    text-align: center;
-    color: #4A90E2;
-    margin: 10px 0;
-}
-
-.container {
-    width: 85%;
-    max-width: 500px;
-    margin: 0 auto;
-    background: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+    background-color: #f4f7fc;
     padding: 20px;
-    overflow: hidden;
-}
-
-button {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border: none;
-    border-radius: 5px;
-    background-color: #4A90E2;
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-button:hover {
-    background-color: #357ABD;
-}
-
-input, select {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    display: block;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 14px;
-    background: white;
-    color: #333;
-}
-
-ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 10px 0;
-}
-
-ul li {
-    background: #f9f9f9;
-    color: #333;
-    margin: 5px 0;
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    text-align: left;
-}
-
-ul li:hover {
-    background: #f1f1f1;
 }
 
 .hidden {
     display: none;
 }
 
-form {
-    text-align: left;
+h2, h3 {
+    color: #333;
 }
 
-#rooms-list li {
+#home-page, #room-page {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
     cursor: pointer;
-    color: #4A90E2;
-    font-weight: bold;
-    transition: color 0.3s ease;
-    margin-bottom: 5px;
 }
 
-#rooms-list li:hover {
-    color: #357ABD;
+button:hover {
+    background-color: #0056b3;
 }
 
-h2 {
-    font-size: 18px;
-    margin-top: 15px;
-    text-align: left;
-}
-
-p {
-    font-size: 14px;
+input[type="text"], input[type="number"], select {
+    padding: 10px;
+    width: 100%;
     margin: 10px 0;
-    text-align: center;
+    border-radius: 4px;
+    border: 1px solid #ddd;
 }
 
-.section {
-    margin-bottom: 20px;
+input[type="text"]:focus, input[type="number"]:focus, select:focus {
+    border-color: #007bff;
 }
 
-#transactions {
+#balance-summary {
     margin-top: 20px;
-    margin-bottom: 0; /* Last section - no extra spacing */
 }
 
-#transactions table {
+#balance-summary table {
     width: 100%;
     border-collapse: collapse;
 }
 
-#transactions th, #transactions td {
+#balance-summary th, #balance-summary td {
+    padding: 10px;
     border: 1px solid #ddd;
-    text-align: left;
-    padding: 8px;
+    text-align: center;
 }
 
-#transactions th {
-    background-color: #f4f4f4;
-    font-weight: bold;
+#balance-summary th {
+    background-color: #007bff;
+    color: white;
 }
 
-@media (min-width: 1024px) {
-    .container {
-        width: 80%;
-        max-width: 800px;
-        padding: 30px;
-    }
+#balance-summary td {
+    background-color: #f9f9f9;
+}
 
-    h1, h2 {
-        font-size: 22px;
-    }
+#transaction-list li {
+    margin: 10px 0;
+}
 
-    button, input, select {
-        font-size: 14px;
-    }
+#player-list li {
+    list-style: none;
+    margin: 5px 0;
+}
 
-    #transactions table {
-        font-size: 14px;
-    }
+#transaction-list li {
+    font-size: 16px;
+}
+
+#player-list li {
+    font-size: 16px;
+}
+
+#receiver, #amount {
+    margin: 10px 0;
 }

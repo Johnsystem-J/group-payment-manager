@@ -8,33 +8,56 @@
 </head>
 <body>
     <div id="home-page">
-        <h1>Group Payment Manager</h1>
+        <h2>Welcome to Group Payment Manager</h2>
         <form id="create-room-form">
             <input type="text" id="playerName" placeholder="Enter your name" required>
             <button type="submit">Create Room</button>
         </form>
-        <h2>Available Rooms</h2>
+        <h3>Rooms List</h3>
         <ul id="rooms-list"></ul>
     </div>
 
     <div id="room-page" class="hidden">
-        <h1>Room: <span id="room-id"></span></h1>
+        <h2>Room: <span id="room-id"></span></h2>
         <p>Welcome, <span id="player-name"></span></p>
         <button id="leave-room">Leave Room</button>
-        <h2>Players</h2>
-        <ul id="player-list"></ul>
-        <h2>Balance Summary</h2>
-        <ul id="balance-summary"></ul>
-        <h2>Pay</h2>
-        <form id="add-transaction-form">
-            <select id="receiver" required>
-                <option value="" disabled selected>Select Receiver</option>
-            </select>
-            <input type="number" id="amount" placeholder="Amount" required>
-            <button type="submit">Pay</button>
-        </form>
-        <h2>Transactions</h2>
-        <ul id="transaction-list"></ul>
+        
+        <div>
+            <h3>Players</h3>
+            <ul id="player-list"></ul>
+        </div>
+
+        <div id="balance-summary">
+            <h3>Balance Summary</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                    </tr>
+                </thead>
+                <tbody id="balance-summary-list">
+                    <!-- Dynamically filled -->
+                </tbody>
+            </table>
+        </div>
+
+        <div>
+            <h3>Pay</h3>
+            <form id="add-transaction-form">
+                <select id="receiver" required>
+                    <option value="" disabled selected>Select Receiver</option>
+                </select>
+                <input type="number" id="amount" placeholder="Amount" required>
+                <button type="submit">Pay</button>
+            </form>
+        </div>
+
+        <div>
+            <h3>Transactions</h3>
+            <ul id="transaction-list">
+                <!-- Dynamically filled -->
+            </ul>
+        </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
